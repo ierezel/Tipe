@@ -1,0 +1,544 @@
+
+EMBARQUEMENT D'AVION SUR UN MODELE DE THERMODYNAMIQUE STATISTIQUE 
+
+
+import numpy as np
+import random as rd
+from Tkinter import *
+
+T=20
+i=0
+temps=0
+vitesse=300
+S=[] #pour les stats
+N=0 #nombre de lancé
+M=0 #nombre de lancé total
+Statistique=False #aussi pour les stats
+probas=[0,0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,4,5,5,5,6,6,6,6,7,7,7,7,8,9,10,11,11,12,12,13,13,14,14,15,15]
+allee=['x']*20
+allee_colonne=[0]*20
+allee_bagage=[0]*20
+allee_couleur=[0]*20
+allee_retour=['x']*20
+allee_retour_colonne=[0]*20
+allee_retour_bagage=[0]*20
+allee_retour_couleur=[0]*20
+allee_croisement=[0]*20
+allee_retour_croisement=[0]*20
+f=open('stats.txt','a')
+
+#n_lancés
+n=0
+L=[] 
+def n_lances():
+    fenetre_l=Toplevel()
+    fenetre_l.grab_set()
+    a=Button(fenetre_l, text='effectuer n-lancés', command=envoie_bis, width=15, height=1, bg='gray')
+    a.grid(row=1, column=1, pady=5, padx=5)
+    b=Button(fenetre_l, text='quitter', command=fenetre_l.destroy, width=15, height=1, bg='gray')
+    b.grid(row=2, column=1, pady=5, padx=5) 
+    c=Entry(fenetre_l, textvariable=lancee, width=4)
+    c.grid(row=3, column=1, pady=5, padx=5)     
+def envoie_bis():
+    global n,L
+    L=[]
+    n=int(lancee.get())
+    Lancee_restant.set("lancée restant : "+str(n))
+    return(envoie())
+def envoie():
+    global n
+    if n!=0:
+        n-=1
+        return(recharger())
+        
+#moyenne 
+def moyenne():
+    fenetre_m=Toplevel()
+    fenetre_m.grab_set()
+    d=Button(fenetre_m, text='calculer', command=calcul_moy, width=15, height=1, bg='gray')
+    d.grid(row=2, column=1, pady=5, padx=5)
+def calcul_moy():
+    global L
+    print(sum(L)/float(len(L)))
+    
+#option
+def options():
+    fenetre_o=Toplevel()
+    fenetre_o.grab_set()
+    e=Label(fenetre_o, text='vitesse :')
+    e.grid(row=1, column=1, pady=5,padx=5)
+    f=Entry(fenetre_o, textvariable=vitesse_bis, width=4)
+    f.grid(row=2, column=1, pady=5, padx=5)
+    g=Label(fenetre_o, text='parametre T :')
+    g.grid(row=3, column=1, pady=5,padx=5)
+    h=Entry(fenetre_o, textvariable=parametre_t, width=4)
+    h.grid(row=4, column=1, pady=5, padx=5)
+    i=Label(fenetre_o, text='temps bagage :')
+    i.grid(row=5, column=1, pady=5,padx=5)
+    j=Entry(fenetre_o, textvariable=probas_bis, width=4)
+    j.grid(row=6, column=1, pady=5, padx=5)        
+    k=Button(fenetre_o, text='appliquer', command=appliquer, width=10, height=1, bg='gray')
+    k.grid(row=7, column=1, pady=5, padx=5)
+    l=Button(fenetre_o, text='quitter', command=fenetre_o.destroy, width=10, height=1, bg='gray')
+    l.grid(row=8, column=1, pady=5, padx=5)   
+def appliquer():
+    global T,vitesse,probas
+    T=int(parametre_t.get())
+    vitesse=int(vitesse_bis.get())
+    probas=[]
+    l=list(probas_bis.get())
+    #pour transformer en liste
+    i=0 
+    j=0
+    for k in l:
+        if k==',':
+            i=0
+            j+=1
+        else:
+            if i==0:
+                probas.append(int(k))
+                i+=1
+            else:
+                probas[j]=10*probas[j]+int(k)        
+
+def stats():
+    fenetre_s=Toplevel()
+    fenetre_s.grab_set()
+    a=Label(fenetre_s, text='liste des T :')
+    a.grid(row=1, column=1, pady=5,padx=5)
+    b=Entry(fenetre_s, textvariable=S_bis, width=4)
+    b.grid(row=2, column=1, pady=5, padx=5)
+    c=Label(fenetre_s, text='nombre de lancé :')
+    c.grid(row=3, column=1, pady=5,padx=5)
+    d=Entry(fenetre_s, textvariable=N_bis, width=4)
+    d.grid(row=4, column=1, pady=5, padx=5)
+    e=Button(fenetre_s, text='appliquer', command=appliquer_bis, width=10, height=1, bg='gray')
+    e.grid(row=5, column=1, pady=5, padx=5)
+    f=Button(fenetre_s, text='quitter', command=fenetre_s.destroy, width=10, height=1, bg='gray')
+    f.grid(row=6, column=1, pady=5, padx=5)
+def appliquer_bis():
+    global N,S,M,L
+    L=[]
+    N=int(N_bis.get())
+    S=[]
+    l=list(S_bis.get())
+    #pour transformer en liste
+    i=0 
+    j=0
+    for k in l:
+        if k==',':
+            i=0
+            j+=1
+        else:
+            if i==0:
+                S.append(int(k))
+                i+=1
+            else:
+                S[j]=10*S[j]+int(k)           
+    M=len(S)*N
+    return(boucle_stats())
+def boucle_stats():
+    global N,S,M,Statistique,L,T
+    if M%N==0:
+        j=M//N
+        T=S[j-1]
+    if M!=0:
+        M-=1
+        Statistique=True
+        return(recharger())
+        
+#Chargement de l'avion 
+def chargement_total():
+    Tour()
+    
+def recharger():
+    global siege,allee,allee_colonne,allee_bagage,allee_couleur,allee_retour_croisement,allee_croisement
+    global allee_retour,allee_retour_colonne,allee_retour_bagage,allee_retour_couleur
+    siege=energie()    
+    allee=['x']*20
+    allee_colonne=[0]*20
+    allee_bagage=[0]*20
+    allee_couleur=[0]*20
+    allee_retour=['x']*20
+    allee_retour_colonne=[0]*20
+    allee_retour_bagage=[0]*20
+    allee_retour_couleur=[0]*20
+    allee_croisement[0]*20
+    allee_retour_croisement[0]*20
+    global i,temps
+    i=0
+    temps=0
+    Initialisation()
+    Tour()   
+ 
+def energie():
+    seat=np.zeros((20,6))
+    for i in range(0,20):
+        seat[i,0],seat[i,5]=-7+(5*i),-7+(5*i)
+        seat[i,1],seat[i,4]=-5+(5*i),-5+(5*i)
+        seat[i,2],seat[i,3]=-8+(5*i),-8+(5*i)
+    return seat
+siege=energie()
+
+def factor(siege):
+    return sum(np.exp((-siege)/T))   
+    
+def probat(siege):
+    return (np.exp(-siege/T))/(factor(siege))
+        
+def choix(siege):
+    a=rd.random()
+    p=0
+    for i in range(0,20):
+        for j in range(6):
+            p+=probat(siege)[i,j]
+            if p>a:
+                return([i,j])
+def bagage():
+    global probas
+    bagage=rd.choice(probas)
+    return bagage        
+                
+#Creation des ronds pour l'allée de gauche#
+def Rond_G(x,y):
+    Allee_Gauche.create_oval(x-8,y-8,x+12,y+12, fill='blue', outline='blue')
+
+#Creation des ronds pour l'allée de droite#
+def Rond_D(x,y):
+    Allee_Droite.create_oval(x-8,y-8,x+12,y+12, fill='blue', outline='blue')
+
+#Création des ronds pour l'allée centrale#
+def Rond_C(x,y,couleur):
+    Allee_Centrale.create_oval(x-8,y-8,x+12,y+12, fill=couleur, outline=couleur)
+#Création des ronds pour l'allée centrale des retours#
+def Rond_C_retour(x,y,couleur):
+    Allee_Centrale_retour.create_oval(x-8,y-8,x+12,y+12, fill=couleur, outline=couleur)
+#effacer cercles#
+def effacer(Allee_Centrale,Allee_Centrale_retour):
+    a=len(Allee_Centrale.find_all())
+    b=len(Allee_Centrale_retour.find_all())
+    while a>=23:
+        cercle=Allee_Centrale.find_all()[-1]
+        Allee_Centrale.delete(cercle)
+        a=len(Allee_Centrale.find_all())
+    while b>=23:
+        cercle=Allee_Centrale_retour.find_all()[-1]
+        Allee_Centrale_retour.delete(cercle)
+        b=len(Allee_Centrale_retour.find_all())
+#initilisation pour recharger l'avion
+def Initialisation():
+    for k in range(60):
+        cercle=Allee_Gauche.find_all()[-1]
+        Allee_Gauche.delete(cercle)
+        cercle=Allee_Droite.find_all()[-1]
+        Allee_Droite.delete(cercle)
+        
+def Tour():
+    effacer(Allee_Centrale,Allee_Centrale_retour)
+    global i   
+    global couleur
+    couleur='black'      
+    #faire avancer les personnes qui ne sont pas à leur place
+    for k in range(19,-1,-1):
+        #on regarde si il quelqu'un dans la 'case'
+        if allee[k]!='x':
+            #Si il n'y a pas de croisement
+            if allee_croisement[k]==0:
+                #on regarde si une personne s'est fait voler sa place
+                if siege[allee[k],allee_colonne[k]]==np.inf:
+                        a,b=choix(siege)
+                        if a<k:
+                            if allee_retour[k]=='x':
+                                allee_retour[k]=a
+                                allee_retour_colonne[k]=b
+                                allee_retour_bagage[k]=allee_bagage[k]
+                                allee[k]='x'
+                                allee_colonne[k]=0
+                                allee_bagage[k]=0
+                        else:
+                            allee[k]=a
+                            allee_colonne[k]=b
+                #Si la personne est à sa place
+                if allee[k]==k:
+                    allee_couleur[k]='red'                    
+                    if allee_bagage[k]==0:
+                        #on regarde si la personne s'est fait voler sa place
+                        if siege[allee[k],allee_colonne[k]]==np.inf:
+                                a,b=choix(siege)
+                                #La personne change de siege
+                                if a<k:
+                                    if allee_retour[k]=='x':
+                                        allee_retour[k]=a
+                                        allee_retour_colonne[k]=b
+                                        allee_retour_bagage[k]=allee_bagage[k]
+                                        allee[k]='x'
+                                        allee_colonne[k]=0
+                                        allee_bagage[k]=0
+                                else:
+                                    allee[k]=a
+                                    allee_colonne[k]=b
+                        #La personne s'assoit
+                        else:
+                            maj_siege(allee[k],allee_colonne[k])
+                            siege[allee[k],allee_colonne[k]]=np.inf                         
+                            allee[k]='x'
+                            allee_colonne[k]=0  
+                    else:
+                        allee_bagage[k]-=1
+                #Si la personne n'est pas à sa place
+                elif allee[k+1]=='x':
+                    #on regarde si il y a du croisement
+                    if allee_retour[k+1]!='x':
+                        allee_retour_croisement[k+1]+=5
+                        allee_croisement[k+1]+=5
+                    allee[k+1]=allee[k]
+                    allee_colonne[k+1]=allee_colonne[k]
+                    allee_bagage[k+1]=allee_bagage[k]
+                    allee[k]='x'
+                    allee_colonne[k]=0
+                    allee_bagage[k]=0
+                    allee_couleur[k+1]='black'
+            #Il y a du croisement
+            else:
+                allee_retour_couleur[k],allee_couleur[k]='green','green'
+                allee_croisement[k]-=1
+    #faire reculer les personnes qui ne sont pas à leur place
+    for k in range(20):
+        #on regarde si il y a une personne dans la "case"
+        if allee_retour[k]!='x':
+            #Si il n'y a pas de croisement
+            if allee_retour_croisement[k]==0:
+                #on regarde si une personne s'est fait voler sa place
+                if siege[allee_retour[k],allee_retour_colonne[k]]==np.inf:
+                        a,b=choix(siege)
+                        if a>k:
+                            if allee[k]=='x':
+                                allee[k]=a
+                                allee_colonne[k]=b
+                                allee_bagage[k]=allee_retour_bagage[k]
+                                allee_retour[k]='x'
+                                allee_retour_colonne[k]=0
+                                allee_retour_bagage[k]=0
+                        else:
+                            allee_retour[k]=a
+                            allee_retour_colonne[k]=b
+                #si la personne est à sa place
+                if allee_retour[k]==k:
+                    #si elle a fini de charger son bagage
+                    allee_retour_couleur[k]='red'
+                    if allee_retour_bagage[k]==0:
+                        #on regarde si la personne s'est fait voler sa place
+                        if siege[allee_retour[k],allee_retour_colonne[k]]==np.inf:
+                            a,b=choix(siege)
+                            if a>k:
+                                if allee[k]=='x':
+                                    allee[k]=a
+                                    allee_colonne[k]=b
+                                    allee_bagage[k]=allee_retour_bagage[k]
+                                    allee_retour[k]='x'
+                                    allee_retour_colonne[k]=0
+                                    allee_retour_bagage[k]=0
+                            else:
+                                allee_retour[k]=a
+                                allee_retour_colonne[k]=b
+                        #La personne s'assoit
+                        else:
+                            maj_siege(allee_retour[k],allee_retour_colonne[k])
+                            siege[allee_retour[k],allee_retour_colonne[k]]=np.inf
+                            allee_retour[k]='x'
+                            allee_retour_colonne[k]=0
+                    #si elle mets son bagage
+                    else:
+                        allee_retour_bagage[k]-=1
+                #si la personne n'est pas à sa place 
+                elif allee_retour[k-1]=='x':
+                    #on regarde si il y a du croisement
+                    if allee[k-1]!='x':
+                        allee_retour_croisement[k-1]+=5
+                        allee_croisement[k-1]+=5
+                    allee_retour[k-1]=allee_retour[k]
+                    allee_retour_colonne[k-1]=allee_retour_colonne[k]
+                    allee_retour_bagage[k-1]=allee_retour_bagage[k]
+                    allee_retour[k]='x'
+                    allee_retour_colonne[k]=0
+                    allee_retour_bagage[k]=0
+                    allee_retour_couleur[k-1]='black'
+            #Si il n'y a pas de croisement      
+            else:
+                allee_retour_couleur[k],allee_couleur[k]='green','green'
+                allee_retour_croisement[k]-=1     
+    #une personne entre si....
+    if allee[0]=='x' and allee[1]=='x' and i<120:
+        if i<120:
+            i+=1
+            Texte.set("personnes dans l'avion : "+str(i))
+            a,b=choix(siege)
+            allee[0]=a     #rangée 
+            allee_colonne[0]=b # colonne
+            allee_bagage[0]=bagage()
+            allee_couleur[0]=couleur
+    global temps
+    temps+=2
+    minutes=temps//60
+    secondes=temps%60
+    Temps.set("temps: "+str(minutes)+"minutes  "+str(secondes)+"secondes")
+    #l'avion est plein
+    if i==120 and allee==['x']*20 and allee_retour==['x']*20:
+        global Statistique,n
+        if Statistique==True:
+            L.append(temps)
+            print(temps,T)
+            f.write(str(T)+str(temps)+'\n')
+            return(boucle_stats())
+        print temps 
+        #ajout du temps dans la liste pour les n_lancés
+        L.append(temps)
+        #pour refaire un lancé si n n'est pas nul
+        Lancee_restant.set("lancée restant : "+str(n))
+        if n!=0:
+            return(envoie())
+        else:
+            return(temps)
+    maj_couloir()
+
+def maj_couloir():
+    global vitesse
+    for k in range(0,20):
+        if allee[k]!='x':
+            a=0
+            b=k
+            x=12.5+a*25
+            y=12.5+b*25            
+            couleur=allee_couleur[k]            
+            Rond_C(x,y,couleur)
+    for k in range(0,20):
+        if allee_retour[k]!='x':
+            a=0
+            b=k
+            x=12.5+a*25
+            y=12.5+b*25 
+            couleur=allee_couleur[k]  
+            Rond_C_retour(x,y,couleur)
+    Avion.after(vitesse,Tour)
+
+def maj_siege(r,c):    
+    if c<=2:
+        x=12.5+c*25
+        y=12.5+r*25
+        Rond_G(x,y)    
+    else:
+        c-=3
+        x=12.5+c*25
+        y=12.5+r*25
+        Rond_D(x,y)
+    
+#Création de la fenetre#
+Avion=Tk()
+Avion.title("Avion")
+
+#Création de l'allée de gauche#
+Largeur=77
+Hauteur=502
+Allee_Gauche=Canvas(Avion, width=Largeur, height=Hauteur, bg='white')
+Allee_Gauche.grid(row=1, column=1)
+for k in range(0,21):
+    Allee_Gauche.create_line(0, k*25+2, 77, k*25+2)
+Allee_Gauche.create_line(0, 2, 77, 2)
+Allee_Gauche.create_line(27, 0, 27, 502)
+Allee_Gauche.create_line(52, 0, 52, 502)
+Allee_Gauche.create_line(77, 0, 77, 503)
+Allee_Gauche.create_line(2, 0, 2, 502)
+
+#Création de l'allée centrale #
+Largeur=27
+Hauteur=502
+Allee_Centrale=Canvas(Avion, width=Largeur, height=Hauteur, bg='gray')
+Allee_Centrale.grid(row=1, column=2)
+for k in range(0,21):
+    Allee_Centrale.create_line(0, k*25+2, 27, k*25+2)
+Allee_Centrale.create_line(2, 0, 2, 502)
+Allee_Centrale.create_line(27, 0, 27, 502)
+Canvas(Avion, width=Largeur, height=Hauteur, bg='white')
+
+#Création de l'allée centrale des retours #
+Largeur=27
+Hauteur=502
+Allee_Centrale_retour=Canvas(Avion, width=Largeur, height=Hauteur, bg='gray')
+Allee_Centrale_retour.grid(row=1, column=3)
+for k in range(0,21):
+    Allee_Centrale_retour.create_line(0, k*25+2, 27, k*25+2)
+Allee_Centrale_retour.create_line(2, 0, 2, 502)
+Allee_Centrale_retour.create_line(27, 0, 27, 502)
+
+#Création de l'allée de droite#
+Largeur=77
+Hauteur=502
+Allee_Droite=Canvas(Avion, width=Largeur, height=Hauteur, bg='white')
+Allee_Droite.grid(row=1, column=4)
+for k in range(0,21):
+    Allee_Droite.create_line(0, k*25+2, 77, k*25+2)
+Allee_Droite.create_line(0, 2, 77, 2)
+Allee_Droite.create_line(27, 0, 27, 502)
+Allee_Droite.create_line(52, 0, 52, 502)
+Allee_Droite.create_line(77, 0, 77, 503)
+Allee_Droite.create_line(2, 0, 2, 502)
+
+#Création de la partie de droite
+Partie_De_Droite=Frame(Avion, height=Hauteur)
+Partie_De_Droite.grid(row=1,column=5)
+
+#Création de la zone des boutons#
+zone_bouton=Frame(Partie_De_Droite)
+zone_bouton.grid(row=1, column=1)
+Bouton=Button(zone_bouton, text='chargement',command=chargement_total, width=10, height=1, bg='gray')
+Bouton.grid(row=1, column=1,pady=5)
+Bouton2=Button(zone_bouton, text='  recharger  ',command=recharger, width=10, height=1, bg='gray')
+Bouton2.grid(row=2, column=1, pady=5)
+Bouton3=Button(zone_bouton, text='n-lancés',command=n_lances, width=10, height=1, bg='gray')
+Bouton3.grid(row=3, column=1, pady=5)
+lancee=IntVar()
+lancee.set(0)
+
+#Création de la zone de texte#
+zone_texte=Frame(Partie_De_Droite, width=100)
+zone_texte.grid(row=2, column=1)
+Texte=StringVar()
+Texte.set("personne dans l'avion : "+str(0))
+Label1=Label(zone_texte, textvariable=Texte, width=25, height=1, fg='black', bg='gray')
+Label1.grid(row=1, column=1)
+Temps=StringVar()
+Temps.set("temps: "+str(0))
+Label2=Label(zone_texte, textvariable=Temps, width=25, height=1, fg='black', bg='gray')
+Label2.grid(row=2, column=1)
+Lancee_restant=StringVar()
+Lancee_restant.set("lancés restant : "+str(0))
+Label3=Label(zone_texte, textvariable=Lancee_restant, width=25, height=1, fg='black', bg='gray')
+Label3.grid(row=3, column=1)
+
+#Création de la zone moyenne
+zone_moyenne=Frame(Partie_De_Droite)
+zone_moyenne.grid(row=3, column=1)
+Bouton4=Button(zone_moyenne, text='moyenne', command=moyenne, width=10, height=1, bg='gray')
+Bouton4.grid(row=1, column=1, pady=5)
+
+#Création de la zone options
+zone_options=Frame(Partie_De_Droite)
+zone_options.grid(row=4, column=1)
+Bouton5=Button(zone_options, text='options', command=options, width=10, height=1, bg='gray')
+Bouton5.grid(row=1, column=1, pady=5)
+vitesse_bis=IntVar()
+vitesse_bis.set(1)
+parametre_t=IntVar()
+parametre_t.set(1)
+probas_bis=StringVar()
+probas_bis.set('0')
+
+#Création de la zone stats
+zone_stats=Frame(Partie_De_Droite)
+zone_stats.grid(row=5, column=1)
+Bouton6=Button(zone_stats, text='stats', command=stats, width=10, height=1, bg='gray')
+Bouton6.grid(row=1, column=1, pady=5)
+S_bis=StringVar()
+N_bis=IntVar()
+
+Avion.mainloop()
